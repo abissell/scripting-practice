@@ -1,48 +1,48 @@
 #!/bin/sh
 
 backup_dir() {
-    files=""
+    local files=""
 
-    source=$1
-    target=$2
+    cd $1
 
-    echo "source: $source"
-    echo "target: $target"
-
-    for file in $(find $source -d 1)
+    for file in $(find . -maxdepth 1 -mindepth 1)
     do
-        echo "Looking at file: $file"
-        echo "source: $source"
-        echo "target: $target"
+        file=${file:2}
+        echo "Looking at file $file"
         if [[ -f $file ]] ; then
-            files="$files $file"
+            if [[ files == "" || files == " " ]] ; then
+                files=$file
+                echo "Set empty files to $files"
+            else
+                files="$files $file"
+                echo "Set files to $files"
+            fi
         elif [[ -d $file ]] ; then
-            relativeDir=${file:${#source}:${#file}}
-            echo "relativeDir: $relativeDir"
-            targetDir="$target$relativeDir"
-            if [[ -e $targetDir && ! -d $targetDir ]] ; then
-                echo "Target directory $targetDir already exists but is not a directory!"
+            src=$1
+            destDir="$2/$file"
+            if [[ -e $destDir && ! -d $destDir ]] ; then
+                echo "Target directory $destDir already exists but is not a directory!"
                 exit 1
             fi
-            echo "mkdir: $targetDir"
-            mkdir $targetDir
-            echo "Calling backup_dir with source: $file target: $targetDir"
-            backup_dir $file $targetDir
+            mkdir -p $destDir
+
+            absSrc="$src/$file"
+            echo "Calling backup_dir with absSrc: $absSrc dest: $destDir"
+            backup_dir $absSrc $destDir
+            cd $1
         fi
     done
 
-    if [[ files != "" ]] ; then
-        destFile="$target/BACKUP.tar.gz"
+    echo "files is $files"
+    if [[ files != "" && files != " " ]] ; then
+        dest=$2
+        destFile="$dest/BACKUP.tar.gz"
         echo "tar -czvf $destFile $files"
-        # tar -czvf $destFile $files
+        tar -czvf $destFile $files
     fi
-
-    echo "exiting backup_dir"
 }
 
-source=$1
-target=$2
-
-backup_dir $source $target
+files=""
+backup_dir $1 $2
 
 exit 0
