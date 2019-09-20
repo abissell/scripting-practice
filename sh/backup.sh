@@ -10,12 +10,12 @@ backup_dir() {
         file=${file:2}
         echo "Looking at file $file"
         if [[ -f $file ]] ; then
-            if [[ files == "" || files == " " ]] ; then
-                files=$file
-                echo "Set empty files to $files"
-            else
+            if [[ "$files" != "" ]] ; then
                 files="$files $file"
                 echo "Set files to $files"
+            else
+                files=$file
+                echo "Set empty files to $files"
             fi
         elif [[ -d $file ]] ; then
             src=$1
@@ -34,7 +34,7 @@ backup_dir() {
     done
 
     echo "files is $files"
-    if [[ files != "" && files != " " ]] ; then
+    if [[ "$files" != "" ]] ; then
         dest=$2
         destFile="$dest/BACKUP.tar.gz"
         echo "tar -czvf $destFile $files"
