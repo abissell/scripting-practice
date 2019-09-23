@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import os
 import sys
+import tarfile
 
 def backup(srcDir, backupDir):
     with os.scandir(srcDir) as entries:
@@ -9,11 +10,14 @@ def backup(srcDir, backupDir):
 
         for entry in entries:
             if entry.is_dir():
-                dirs.append(entry.name)
+                backup(srcDir + '/' + entry.name, backupDir + '/' + entry.name)
             else:
                 files.append(entry.name)
 
-        print("dirs: " + str(dirs))
-        print("files: " + str(files))
+        os.makedirs(backupDir, exist_ok=True)
+        tar = tarfile.open(backupDir + '/BACKUP.tar.gz', 'w:gz')
+        for file in files:
+            tar.add(srcDir + '/' + file)
+        tar.close()
 
-backup(sys.argv[1], "")
+backup(sys.argv[1], sys.argv[2])
